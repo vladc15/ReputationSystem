@@ -20,11 +20,15 @@ module.exports = {
           interval: 100, //ms
       },
       loggingEnabled: true,
-      chainId: 1337,
+      chainId: 31337,
     },
     sepolia: {
       url: "https://sepolia.infura.io/v3/<ApiKey>", // "https://ethereum-sepolia-rpc.publicnode.com"
       accounts: ["PrivateKey1", "PrivateKey2"]
+    },
+    localhost: {
+      chainId: 31337,
+      url: "http://127.0.0.1:8545",
     },
   },
   defaultNetwork: "hardhat",
