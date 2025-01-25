@@ -10,7 +10,6 @@ contract ProductPlatform {
     UserSystem public userSystem;
     ReputationSystem public reputationSystem;
     ProductSystem public productSystem;
-
     using MathLib for uint256;
 
     constructor(address userSystemAddress, address reputationSystemAddress, address productSystemAddress) {
@@ -42,28 +41,48 @@ contract ProductPlatform {
         emit productSystem.ProductAdded(productId, name, price, msg.sender);
     }
 
-    function buyProduct(uint productId, uint quantity) external payable onlyRegistered {
+    // buy using either ETH or USD through Chainlink and oracle
+    // we could also use this only to show price in USD, but use ETH for transactions
+    function buyProduct(uint productId, uint quantity, bool eth) external payable onlyRegistered {
         uint productQuantity = productSystem.getProductQuantity(productId);
-        uint productPrice = productSystem.getProductPrice(productId);
         address productSeller = productSystem.getProductSeller(productId);
-
         require(quantity > 0, "Quantity must be greater than 0");
         require(productQuantity >= quantity, "Not enough quantity in stock");
-        require(msg.value >= productPrice * quantity, "Insufficient funds");
 
-        userSystem.updateBalance(productSeller, productPrice * quantity);
-        //productSystem.setProductQuantity(productId, productQuantity - quantity);
-        productSystem.products(productId).quantity = productQuantity - quantity;
+        uint256 productPrice = productSystem.getProductPrice(productId);
+        uint256 msgValueInUsd = 0;
+        uint256 ethPriceInUsd = userSystem.getETHPrice();
+        if (eth == false) {
+            productPrice = productPrice * ethPriceInUsd;
+            msgValueInUsd = msg.value * ethPriceInUsd;
+            require(msgValueInUsd >= productPrice * quantity, "Insufficient funds");
+        }
+        else {
+            require(msg.value >= productPrice * quantity, "Insufficient funds");
+        }
+
+        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
+        productSystem.products[productId].quantity = productQuantity - quantity;
         userSystem.userPurchases[msg.sender].push(productId);
         if (productQuantity == quantity) {
             emit productSystem.ProductOutOfStock(productId);
         }
 
-        uint change = msg.value - productPrice * quantity;
-        if (change > 0) {
-            // refund instantly the change
-            payable(msg.sender).transfer(change);
+        if (eth) {
+            uint256 change = msg.value - productPrice * quantity;
+            if (change > 0) {
+                // refund instantly the change
+                payable(msg.sender).transfer(change);
+            }
         }
+        else {
+            uint256 change = msgValueInUsd - productPrice * quantity;
+            if (change > 0) {
+                // refund instantly the change
+                payable(msg.sender).transfer(change / ethPriceInUsd); // this might give accurate change, if the returned values are in wei
+            }
+        }
+
     }
 
     function submitFeedback(uint productId, uint rating, string memory comments) external onlyUserWhoPurchased(productId) {

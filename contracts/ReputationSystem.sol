@@ -50,7 +50,7 @@ contract ReputationSystem {
             totalScore += calculateContribution(feedbacks[i].rating, feedbacks[i].timestamp);
         }
 
-        return totalScore.floatingDivision(feedbacks.length);
+        return totalScore / feedbacks.length; // already scaled, no need to use SCALING_FACTOR
     }
 
     function calculateContribution(uint256 rating, uint256 timestamp) public pure returns (uint256) {
