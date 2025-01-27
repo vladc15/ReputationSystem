@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { createBrowserRouter, RouterProvider} from "react-router-dom"
 
-import { WalletProvider } from './utils/Context';
+import { Web3Provider } from './utils/Context';
 import routes from "./routes/router"
 
 import './styles/App.css';
@@ -11,11 +11,11 @@ const router = createBrowserRouter(routes)
 function App() {
   
   return (
-      <WalletProvider>
+      <Web3Provider>
         {useMemo(() => (
           <RouterProvider router={router} />)
           , [])}
-      </WalletProvider>
+      </Web3Provider>
   )
 }
 

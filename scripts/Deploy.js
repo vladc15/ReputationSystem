@@ -38,6 +38,19 @@ const main = async () => {
     );
     await productPlatform.deployed();
     console.log("ProductPlatform deployed to:", productPlatform.address);
+
+    // write all contract addresses to a file
+    const fs = require('fs');
+    const addresses = {
+        MathLib: mathLib.address,
+        UserSystem: userSystem.address,
+        ReputationSystem: reputationSystem.address,
+        ProductSystem: productSystem.address,
+        ProductPlatform: productPlatform.address
+    };
+    fs.writeFileSync('../src/deployedContracts.json', JSON.stringify(addresses, null, 2));
+
+    console.log("All contracts deployed successfully");
 };
 
 main().catch((error) => {
