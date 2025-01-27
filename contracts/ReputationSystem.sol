@@ -34,9 +34,9 @@ contract ReputationSystem {
         return productFeedbacks[productId].length;
     }
 
-//    function getProductFeedbacks(uint productId) external view feedbacksAvailable(productId, 0) returns (Feedback[] memory) {
-//        return productFeedbacks[productId];
-//    }
+    function getProductFeedbacks(uint productId) external view feedbacksAvailable(productId, 0) returns (Feedback[] memory) {
+        return productFeedbacks[productId];
+    }
 
     function getProductFeedback(uint productId, uint feedbackIndex) external view feedbacksAvailable(productId, feedbackIndex) returns (Feedback memory) {
         return productFeedbacks[productId][feedbackIndex];

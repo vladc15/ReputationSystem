@@ -18,11 +18,6 @@ contract ProductPlatform {
         productSystem = ProductSystem(productSystemAddress);
     }
 
-    modifier onlyRegistered() {
-        require(userSystem.isRegistered(msg.sender), "User not registered");
-        _;
-    }
-
     modifier onlyUserWhoPurchased(uint productId) {
         bool purchased = false;
         uint userPurchasesNumber = userSystem.getUserPurchasesNumber(msg.sender);
@@ -38,13 +33,11 @@ contract ProductPlatform {
         _;
     }
 
-    function addProduct(string memory name, string memory description, uint price, uint quantity) external onlyRegistered {
-        productSystem.addProduct(name, description, price, quantity);
-    }
+    event ProductBought(uint productId, uint quantity, address buyer, address seller);
 
     // buy using either ETH or USD through Chainlink and oracle
     // we could also use this only to show price in USD, but use ETH for transactions
-    function buyProduct(uint productId, uint quantity, bool eth) external payable onlyRegistered {
+    function buyProduct(uint productId, uint quantity, bool eth) external payable {
         uint productQuantity = productSystem.getProductQuantity(productId);
         address productSeller = productSystem.getProductSeller(productId);
         require(quantity > 0, "Quantity must be greater than 0");
@@ -62,7 +55,11 @@ contract ProductPlatform {
             require(msg.value >= productPrice * quantity, "Insufficient funds");
         }
 
-        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
+//        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
+        // put this in order to make sure the updateBalance is called correctly (and it cannot be called from the UserSystem contract
+        // without paying an amount of ETH equal to the amount to be updated)
+        (bool success, ) = address(userSystem).call(abi.encodeWithSignature("updateBalance(address,uint256)", productSeller, productPrice * quantity));
+        require(success, "Failed to update seller balance");
         userSystem.addUserPurchase(msg.sender, productId);
         productSystem.setProductQuantity(productId, productQuantity - quantity);
 
@@ -80,7 +77,7 @@ contract ProductPlatform {
                 payable(msg.sender).transfer(change / ethPriceInUsd); // this might give accurate change, if the returned values are in wei
             }
         }
-
+        emit ProductBought(productId, quantity, msg.sender, productSeller);
     }
 
     function submitFeedback(uint productId, uint rating, string memory comments) external onlyUserWhoPurchased(productId) {

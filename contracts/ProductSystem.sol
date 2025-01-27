@@ -20,7 +20,7 @@ contract ProductSystem  {
     event ProductOutOfStock(uint productId);
 
 
-    function addProduct(string memory name, string memory description, uint price, uint quantity) external {
+    function addProduct(string memory name, string memory description, uint price, uint quantity) external  {
         uint productId = products.length;
         products.push(Product(productId, name, description, price, msg.sender, quantity));
         emit ProductAdded(productId, name, price, msg.sender, quantity);
@@ -53,7 +53,7 @@ contract ProductSystem  {
         return products.length;
     }
 
-//    function getProducts() external view returns (Product[] memory) {
-//        return products;
-//    }
+    function getProducts() external view returns (Product[] memory) {
+        return products;
+    }
 }
