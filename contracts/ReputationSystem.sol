@@ -22,7 +22,7 @@ contract ReputationSystem {
 
     function addProductFeedback(uint productId, uint rating, uint timestamp, string memory comments) external {
         if (productFeedbacks[productId].length == 0) {
-            productFeedbacks[productId] = new Feedback[](0);
+            //productFeedbacks[productId] = new Feedback[](0);
         }
 
         Feedback memory feedback = Feedback(rating, timestamp, comments);
@@ -34,27 +34,32 @@ contract ReputationSystem {
         return productFeedbacks[productId].length;
     }
 
-    function getProductFeedbacks(uint productId) external view feedbacksAvailable(productId, 0) returns (Feedback[] memory) {
-        return productFeedbacks[productId];
-    }
+//    function getProductFeedbacks(uint productId) external view feedbacksAvailable(productId, 0) returns (Feedback[] memory) {
+//        return productFeedbacks[productId];
+//    }
 
     function getProductFeedback(uint productId, uint feedbackIndex) external view feedbacksAvailable(productId, feedbackIndex) returns (Feedback memory) {
         return productFeedbacks[productId][feedbackIndex];
     }
 
-    function getProductFeedbackScore(uint productId) external view feedbacksAvailable(productId, 0) returns (uint) {
-        Feedback[] memory feedbacks = productFeedbacks[productId];
-        uint totalScore = 0;
-
-        for (uint i = 0; i < feedbacks.length; i++) {
-            totalScore += calculateContribution(feedbacks[i].rating, feedbacks[i].timestamp);
-        }
-
-        return totalScore / feedbacks.length; // already scaled, no need to use SCALING_FACTOR
+    function getProductFeedbacksNumber(uint productId) external view returns (uint) {
+        return productFeedbacks[productId].length;
     }
 
-    function calculateContribution(uint256 rating, uint256 timestamp) public pure returns (uint256) {
-        uint256 timeElapsed = block.timestamp - timestamp; // weight will be based on time
+    function getProductFeedbackScore(uint productId) external view feedbacksAvailable(productId, 0) returns (uint) {
+        //Feedback[] memory feedbacks = productFeedbacks[productId];
+        uint totalScore = 0;
+        uint256 currentTime = block.timestamp;
+
+        for (uint i = 0; i < productFeedbacks[productId].length; i++) {
+            totalScore += calculateContribution(productFeedbacks[productId][i].rating, currentTime, productFeedbacks[productId][i].timestamp);
+        }
+
+        return totalScore / productFeedbacks[productId].length; // already scaled, no need to use SCALING_FACTOR
+    }
+
+    function calculateContribution(uint256 rating, uint256 currentTime, uint256 timestamp) public pure returns (uint256) {
+        uint256 timeElapsed = currentTime - timestamp; // weight will be based on time
         uint256 timeLimit = 365 days; // limit to 1 year
         uint256 weight = timeElapsed > timeLimit ? 0 : (timeLimit - timeElapsed);
         uint256 weightedRating = rating * weight;

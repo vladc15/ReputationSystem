@@ -20,11 +20,11 @@ contract ProductSystem  {
     event ProductOutOfStock(uint productId);
 
 
-//    function addProduct(string memory name, string memory description, uint price, uint quantity) external onlyRegistered {
-//        uint productId = products.length;
-//        products.push(Product(productId, name, description, price, msg.sender, 0, 0, quantity));
-//        emit ProductAdded(productId, name, price, msg.sender);
-//    }
+    function addProduct(string memory name, string memory description, uint price, uint quantity) external {
+        uint productId = products.length;
+        products.push(Product(productId, name, description, price, msg.sender, quantity));
+        emit ProductAdded(productId, name, price, msg.sender, quantity);
+    }
 
     function getProduct(uint productId) external view returns (Product memory) {
         return products[productId];
@@ -38,14 +38,22 @@ contract ProductSystem  {
         return products[productId].quantity;
     }
 
-//    function setProductQuantity(uint productId, uint quantity) external onlyRegistered {
-//        products[productId].quantity = quantity;
-//        if (quantity == 0) {
-//            emit ProductOutOfStock(productId);
-//        }
-//    }
+    function setProductQuantity(uint productId, uint quantity) external {
+        products[productId].quantity = quantity;
+        if (quantity == 0) {
+            emit ProductOutOfStock(productId);
+        }
+    }
 
     function getProductSeller(uint productId) external view returns (address) {
         return products[productId].seller;
     }
+
+    function getProductsNumber() external view returns (uint) {
+        return products.length;
+    }
+
+//    function getProducts() external view returns (Product[] memory) {
+//        return products;
+//    }
 }

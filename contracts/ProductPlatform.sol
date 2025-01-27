@@ -25,8 +25,11 @@ contract ProductPlatform {
 
     modifier onlyUserWhoPurchased(uint productId) {
         bool purchased = false;
-        for (uint i = 0; i < userSystem.userPurchases[msg.sender].length; i++) {
-            if (userSystem.userPurchases[msg.sender][i] == productId) {
+        uint userPurchasesNumber = userSystem.getUserPurchasesNumber(msg.sender);
+        uint[] memory userPurchases = userSystem.getUserPurchases(msg.sender);
+        for (uint i = 0; i < userPurchasesNumber; i++) {
+            uint purchasedProductId = userPurchases[i];
+            if (purchasedProductId == productId) {
                 purchased = true;
                 break;
             }
@@ -36,9 +39,7 @@ contract ProductPlatform {
     }
 
     function addProduct(string memory name, string memory description, uint price, uint quantity) external onlyRegistered {
-        uint productId = productSystem.products().length;
-        productSystem.products.push(productSystem.Product(productId, name, description, price, msg.sender, 0, 0, quantity));
-        emit productSystem.ProductAdded(productId, name, price, msg.sender);
+        productSystem.addProduct(name, description, price, quantity);
     }
 
     // buy using either ETH or USD through Chainlink and oracle
@@ -62,11 +63,8 @@ contract ProductPlatform {
         }
 
         userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
-        productSystem.products[productId].quantity = productQuantity - quantity;
-        userSystem.userPurchases[msg.sender].push(productId);
-        if (productQuantity == quantity) {
-            emit productSystem.ProductOutOfStock(productId);
-        }
+        userSystem.addUserPurchase(msg.sender, productId);
+        productSystem.setProductQuantity(productId, productQuantity - quantity);
 
         if (eth) {
             uint256 change = msg.value - productPrice * quantity;

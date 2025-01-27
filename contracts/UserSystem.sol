@@ -33,11 +33,23 @@ contract UserSystem {
         payable(msg.sender).transfer(withdrawAmount);
     }
 
-    function getBalance() external view onlyRegistered returns (uint) {
+    function getBalance() internal view onlyRegistered returns (uint) {
         return balances[msg.sender];
     }
 
     function updateBalance(address user, uint amount) external onlyRegistered {
         balances[user] += amount;
+    }
+
+    function getUserPurchasesNumber(address user) external view onlyRegistered returns (uint) {
+        return userPurchases[user].length;
+    }
+
+    function getUserPurchases(address user) external view onlyRegistered returns (uint[] memory) {
+        return userPurchases[user];
+    }
+
+    function addUserPurchase(address user, uint productId) external onlyRegistered {
+        userPurchases[user].push(productId);
     }
 }
