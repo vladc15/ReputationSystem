@@ -55,11 +55,15 @@ contract ProductPlatform {
             require(msg.value >= productPrice * quantity, "Insufficient funds");
         }
 
-        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
+//        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
         // put this in order to make sure the updateBalance is called correctly (and it cannot be called from the UserSystem contract
         // without paying an amount of ETH equal to the amount to be updated)
-//        (bool success, ) = address(userSystem).call(abi.encodeWithSignature("updateBalance(address,uint256)", productSeller, productPrice * quantity));
-//        require(success, "Failed to update seller balance");
+        (bool success, ) = address(userSystem).call{value: productPrice * quantity}(abi.encodeWithSignature("updateBalance(address,uint256)", productSeller, productPrice * quantity));
+        require(success, "Failed to update seller balance");
+//        (bool success, ) = address(userSystem).call{value: amount}(
+//            abi.encodeWithSignature("updateBalance(address,uint256)", user, amount)
+//        );
+//        require(success, "Failed to update user balance");
         userSystem.addUserPurchase(msg.sender, productId);
         productSystem.setProductQuantity(productId, productQuantity - quantity);
 
