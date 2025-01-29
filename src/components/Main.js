@@ -113,7 +113,7 @@ export const Main = () => {
         <ul>
           {products.map((product, index) => (
             <li key={index}>
-              <strong>{product[1]}</strong>: {product[2]} - {ethers.formatEther(product[3])} ETH ({product[5]} in stock)
+              <strong>{product[1]}</strong>: {product[2]} - {ethers.formatEther(product[3])} ETH ({product[5].toString()} in stock)
               <button onClick={() => navigate(`/product/${product[0]}`)}>
                 View Details
               </button>

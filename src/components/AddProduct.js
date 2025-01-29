@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import deployedContracts from "../deployedContracts.json";
 import { useNavigate } from "react-router-dom";
 import Path from "../routes/path";
+import '../styles/AddProduct.css';
 
 const AddProduct = () => {
   const [name, setName] = useState("");
@@ -49,47 +50,99 @@ const AddProduct = () => {
   };
 
   return (
-    <div>
-      <h2>Add Product</h2>
-      <div>
-        <label>Name:</label>
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Enter product name"
-        />
+      <div className="add-product-container">
+        <div className="product-form">
+          <h2>Add Product</h2>
+
+          <div className="form-group">
+            <label>Name:</label>
+            <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter product name"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Description:</label>
+            <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter product description"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Price (Wei):</label>
+            <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(parseFloat(e.target.value))}
+                placeholder="Enter product price"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Quantity:</label>
+            <input
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                placeholder="Enter product quantity"
+            />
+          </div>
+
+          <button className="submit-button" onClick={handleAddProduct}>
+            Add Product
+          </button>
+        </div>
       </div>
-      <div>
-        <label>Description:</label>
-        <input
-          type="text"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter product description"
-        />
-      </div>
-      <div>
-        <label>Price (Wei):</label>
-        <input
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(parseFloat(e.target.value))}
-          placeholder="Enter product price"
-        />
-      </div>
-      <div>
-        <label>Quantity:</label>
-        <input
-          type="number"
-          value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value))}
-          placeholder="Enter product quantity"
-        />
-      </div>
-      <button onClick={handleAddProduct}>Add Product</button>
-    </div>
   );
+
+  // return (
+  //   <div>
+  //     <h2>Add Product</h2>
+  //     <div>
+  //       <label>Name:</label>
+  //       <input
+  //         type="text"
+  //         value={name}
+  //         onChange={(e) => setName(e.target.value)}
+  //         placeholder="Enter product name"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label>Description:</label>
+  //       <input
+  //         type="text"
+  //         value={description}
+  //         onChange={(e) => setDescription(e.target.value)}
+  //         placeholder="Enter product description"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label>Price (Wei):</label>
+  //       <input
+  //         type="number"
+  //         value={price}
+  //         onChange={(e) => setPrice(parseFloat(e.target.value))}
+  //         placeholder="Enter product price"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label>Quantity:</label>
+  //       <input
+  //         type="number"
+  //         value={quantity}
+  //         onChange={(e) => setQuantity(parseInt(e.target.value))}
+  //         placeholder="Enter product quantity"
+  //       />
+  //     </div>
+  //     <button onClick={handleAddProduct}>Add Product</button>
+  //   </div>
+  // );
 };
 
 export default AddProduct;

@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useWeb3 } from "../utils/Context";
 import deployedContracts from "../deployedContracts.json";
+import "../styles/Feedback.css";
 
 const Feedback = () => {
   const [searchParams] = useSearchParams();
@@ -77,30 +78,63 @@ const Feedback = () => {
   if (isLoading) return <p>Loading...</p>;
 
   return isEligible ? (
-    <div>
-      <h2>Submit Feedback for Product ID: {productId}</h2>
-      <div>
-        <label>Rating (1-5):</label>
-        <input
-          type="number"
-          min="1"
-          max="5"
-          value={rating}
-          onChange={(e) => setRating(parseInt(e.target.value))}
-          placeholder="Enter rating"
-        />
+      <div className="feedback-container">
+        <div className="feedback-form">
+          <h2>Submit Feedback for Product ID: {productId}</h2>
+
+          <div className="form-group">
+            <label>Rating (1-5):</label>
+            <input
+                type="number"
+                min="1"
+                max="5"
+                value={rating}
+                onChange={(e) => setRating(parseInt(e.target.value))}
+                placeholder="Enter rating"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Comments:</label>
+            <textarea
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                placeholder="Enter your feedback comments"
+            />
+          </div>
+
+          <button className="submit-button" onClick={handleFeedbackSubmit}>
+            Submit Feedback
+          </button>
+        </div>
       </div>
-      <div>
-        <label>Comments:</label>
-        <textarea
-          value={comments}
-          onChange={(e) => setComments(e.target.value)}
-          placeholder="Enter your feedback comments"
-        />
-      </div>
-      <button onClick={handleFeedbackSubmit}>Submit Feedback</button>
-    </div>
   ) : null;
+
+  // return isEligible ? (
+  //   <div>
+  //     <h2>Submit Feedback for Product ID: {productId}</h2>
+  //     <div>
+  //       <label>Rating (1-5):</label>
+  //       <input
+  //         type="number"
+  //         min="1"
+  //         max="5"
+  //         value={rating}
+  //         onChange={(e) => setRating(parseInt(e.target.value))}
+  //         placeholder="Enter rating"
+  //       />
+  //     </div>
+  //     <div>
+  //       <label>Comments:</label>
+  //       <textarea
+  //         value={comments}
+  //         onChange={(e) => setComments(e.target.value)}
+  //         placeholder="Enter your feedback comments"
+  //       />
+  //     </div>
+  //     <button onClick={handleFeedbackSubmit}>Submit Feedback</button>
+  //   </div>
+  // ) : null;
 };
 
 export default Feedback;

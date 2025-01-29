@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { useWeb3 } from "../utils/Context";
 import deployedContracts from "../deployedContracts.json";
 import Path from "../routes/path";
+import '../styles/ProductPage.css';
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -150,51 +151,109 @@ const ProductPage = () => {
   if (loading) return <p>Loading product details...</p>;
 
   return (
-    <div>
-      <h2>{product.name}</h2>
-      <p>{product.description}</p>
-      <p>Price: {product.price} ETH</p>
-      <p>Available: {product.quantity}</p>
-      <p>Seller: {product.owner}</p>
+      <div className="App">
+        <div className="App-header">
+      <div className="product-container">
+        <div className="product-header">
+          <h2>{product.name}</h2>
+          <div className="product-details">
+            <p>{product.description}</p>
+            <p>Price: {product.price} ETH</p>
+            <p>Available: {product.quantity}</p>
+            <p>Seller: {product.owner}</p>
+          </div>
 
-      {/* Hide Buy Button for Sellers */}
-      {product.owner !== account && product.quantity > 0 ? (
-        <button onClick={handleBuyProduct}>Buy</button>
-      ) : product.owner === account ? (
-        <p>⚠️ You are the seller of this product.</p>
-      ) : product.quantity === 0 ? (
-        <p>Sold Out</p>
-      ) : null}
+          <div className="button-group">
+            {/* Butoane existente */}
+            {product.owner !== account && product.quantity > 0 ? (
+                <button className="buy-button" onClick={handleBuyProduct}>Buy</button>
+            ) : product.owner === account ? (
+                <p className="warning-message">⚠️ You are the seller of this product.</p>
+            ) : product.quantity === 0 ? (
+                <p className="sold-out">Sold Out</p>
+            ) : null}
 
-      {/* ✅ Always show "Leave a Review" button if the user has bought the product */}
-      {bought && (
-        <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
-          Leave a Review
-        </button>
-      )}
+            {bought && (
+                <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
+                  Leave a Review
+                </button>
+            )}
 
-      {/* Add button for going back to the main menu */}
-        <button onClick={() => navigate(Path.MAIN)}>Back to Main Menu</button>
+            <button onClick={() => navigate(Path.MAIN)}>Back to Main Menu</button>
+          </div>
+        </div>
 
-      <h3>Reviews:</h3>
-      <p> <strong> Weighted Rating Score: {score / scalingFactor} </strong></p>
-      {reviews.length > 0 ? (
-        <ul>
-          {reviews.map((review, index) => (
-            <li key={index}>
-              <strong>Rating:</strong> {review.rating} / 5 ⭐
-              <br />
-              <strong>Date:</strong> {review.timestamp}
-              <br />
-              <strong>Comment:</strong> {review.comments}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No reviews yet.</p>
-      )}
-    </div>
+        <div className="reviews-container">
+          <div className="rating-score">
+            <strong>Weighted Rating Score: {score / scalingFactor}</strong>
+          </div>
+
+          <h3>Reviews:</h3>
+          {reviews.length > 0 ? (
+              <ul className="reviews-list">
+                {reviews.map((review, index) => (
+                    <li className="review-item" key={index}>
+                      <span className="review-rating">Rating: {review.rating}/5 ⭐</span>
+                      <strong>Date:</strong> {review.timestamp}
+                      <strong>Comment:</strong> {review.comments}
+                    </li>
+                ))}
+              </ul>
+          ) : (
+              <p className="warning-message">No reviews yet.</p>
+          )}
+        </div>
+      </div>
+        </div>
+        </div>
   );
+
+  // return (
+  //   <div>
+  //     <h2>{product.name}</h2>
+  //     <p>{product.description}</p>
+  //     <p>Price: {product.price} ETH</p>
+  //     <p>Available: {product.quantity}</p>
+  //     <p>Seller: {product.owner}</p>
+  //
+  //     {/* Hide Buy Button for Sellers */}
+  //     {product.owner !== account && product.quantity > 0 ? (
+  //       <button onClick={handleBuyProduct}>Buy</button>
+  //     ) : product.owner === account ? (
+  //       <p>⚠️ You are the seller of this product.</p>
+  //     ) : product.quantity === 0 ? (
+  //       <p>Sold Out</p>
+  //     ) : null}
+  //
+  //     {/* ✅ Always show "Leave a Review" button if the user has bought the product */}
+  //     {bought && (
+  //       <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
+  //         Leave a Review
+  //       </button>
+  //     )}
+  //
+  //     {/* Add button for going back to the main menu */}
+  //       <button onClick={() => navigate(Path.MAIN)}>Back to Main Menu</button>
+  //
+  //     <h3>Reviews:</h3>
+  //     <p> <strong> Weighted Rating Score: {score / scalingFactor} </strong></p>
+  //     {reviews.length > 0 ? (
+  //       <ul>
+  //         {reviews.map((review, index) => (
+  //           <li key={index}>
+  //             <strong>Rating:</strong> {review.rating} / 5 ⭐
+  //             <br />
+  //             <strong>Date:</strong> {review.timestamp}
+  //             <br />
+  //             <strong>Comment:</strong> {review.comments}
+  //           </li>
+  //         ))}
+  //       </ul>
+  //     ) : (
+  //       <p>No reviews yet.</p>
+  //     )}
+  //   </div>
+  // );
 };
 
 export default ProductPage;
