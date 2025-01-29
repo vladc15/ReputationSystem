@@ -27,7 +27,7 @@ contract UserSystem {
     }
 
     function updateBalance(address user, uint amount) external payable {
-        require(msg.value >= amount, "Incorrect amount sent");
+//        require(msg.value >= amount, "Incorrect amount sent");
         balances[user] += amount;
     }
 
