@@ -1,18 +1,16 @@
-import React from "react"
+import React from "react";
 
-import Path from "./path"
-import {Welcome} from "../components/Welcome.js"
-import {Main} from "../components/Main"
-import Transactions from "../components/Transactions"
-import Proposals from "../components/Proposals"
+import Path from "./path";
+import { Main } from "../components/Main";
+import Feedback from "../components/Feedback";         // New component for feedback
+import AddProduct from "../components/AddProduct";     // New component for adding products
+import ProductPage from '../components/ProductPage';
 
 const routes = [
-    { path: Path.WELCOME, element: <Welcome /> },
     { path: Path.MAIN, element: <Main /> },
-    { path: Path.HOME, element: <Welcome /> },
-    { path: Path.TRANSACTIONS, element: <Transactions /> },
-    { path: Path.PROPOSALS, element: <Proposals /> },
+    { path: Path.FEEDBACK, element: <Feedback /> },   
+    { path: '/product/:productId', element: <ProductPage /> },      // New route
+    { path: Path.ADD_PRODUCT, element: <AddProduct /> }   // New route
+];
 
-]
-
-export default routes
+export default routes;
