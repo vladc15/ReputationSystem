@@ -1,17 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
+import { useWeb3 } from "../utils/Context";
 import deployedContracts from "../deployedContracts.json";
 
 const Feedback = () => {
   const [searchParams] = useSearchParams();
   const productId = searchParams.get("productId"); // Get productId from URL
+  const navigate = useNavigate();
+  const { account } = useWeb3();
   const [rating, setRating] = useState(0);
   const [comments, setComments] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEligible, setIsEligible] = useState(false);
+
+  useEffect(() => {
+    checkIfUserBoughtProduct();
+  }, [productId, account]);
+
+  const checkIfUserBoughtProduct = async () => {
+    if (!account) return;
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(
+        deployedContracts.UserSystem,
+        ["function getUserPurchases(address user) external view returns (uint[])"],
+        provider
+      );
+
+      const purchases = await contract.getUserPurchases(account);
+      const hasBought = purchases.map(Number).includes(Number(productId));
+
+      setIsEligible(hasBought);
+      setIsLoading(false);
+
+      if (!hasBought) {
+        // Redirect back to product page if user didn't buy it
+        alert("You must purchase this product before leaving a review!");
+        navigate(`/product/${productId}`);
+      }
+    } catch (error) {
+      console.error("Error checking purchase status:", error);
+      setIsLoading(false);
+    }
+  };
 
   const handleFeedbackSubmit = async () => {
     try {
-      // Connect to Ethereum provider
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const reputationSystemAddress = deployedContracts.ReputationSystem;
@@ -22,7 +58,6 @@ const Feedback = () => {
 
       const contract = new ethers.Contract(reputationSystemAddress, reputationSystemAbi, signer);
 
-      // Call addProductFeedback function
       await contract.addProductFeedback(
         parseInt(productId), 
         parseInt(rating),
@@ -31,17 +66,16 @@ const Feedback = () => {
       );
 
       alert("Feedback submitted successfully!");
-
-      // Reset fields
-      setRating(0);
-      setComments("");
+      navigate(`/product/${productId}`); // Redirect back to the product page after submission
     } catch (error) {
       console.error("Error submitting feedback:", error);
       alert("Failed to submit feedback. Please check the console for details.");
     }
   };
 
-  return (
+  if (isLoading) return <p>Loading...</p>;
+
+  return isEligible ? (
     <div>
       <h2>Submit Feedback for Product ID: {productId}</h2>
       <div>
@@ -65,7 +99,7 @@ const Feedback = () => {
       </div>
       <button onClick={handleFeedbackSubmit}>Submit Feedback</button>
     </div>
-  );
+  ) : null;
 };
 
 export default Feedback;

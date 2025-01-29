@@ -10,13 +10,14 @@ const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bought, setBought] = useState(false);
-  const [reviews, setReviews] = useState([]); // Store reviews
+  const [reviews, setReviews] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProductDetails();
     fetchProductReviews();
-  }, [productId]);
+    checkIfBought();
+  }, [productId, account]);
 
   const fetchProductDetails = async () => {
     try {
@@ -30,12 +31,12 @@ const ProductPage = () => {
       );
       const details = await contract.getProduct(productId);
       setProduct({
-        id: details[0],
+        id: Number(details[0]),
         name: details[1],
         description: details[2],
         price: ethers.formatEther(details[3]),
         owner: details[4],
-        quantity: details[5]
+        quantity: Number(details[5])
       });
       setLoading(false);
     } catch (error) {
@@ -56,16 +57,32 @@ const ProductPage = () => {
 
       const feedbackList = await contract.getProductFeedbacks(productId);
       
-      // ✅ Fix: Ensure the rating is correctly extracted
       const formattedReviews = feedbackList.map((feedback) => ({
-        rating: Number(feedback[0]), // Extract rating properly
-        timestamp: new Date(Number(feedback[1]) * 1000).toLocaleString(), // Convert timestamp
+        rating: Number(feedback[0]),
+        timestamp: new Date(Number(feedback[1]) * 1000).toLocaleString(),
         comments: feedback[2],
       }));
 
       setReviews(formattedReviews);
     } catch (error) {
       console.error("Error fetching product feedback:", error);
+    }
+  };
+
+  const checkIfBought = async () => {
+    if (!account) return;
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(
+        deployedContracts.UserSystem,
+        ["function getUserPurchases(address user) external view returns (uint[])"],
+        provider
+      );
+
+      const purchases = await contract.getUserPurchases(account);
+      setBought(purchases.map(Number).includes(Number(productId))); // ✅ Ensuring correct comparison
+    } catch (error) {
+      console.error("Error checking purchase status:", error);
     }
   };
 
@@ -85,8 +102,8 @@ const ProductPage = () => {
       const tx = await contract.buyProduct(productId, 1, true, { value: ethers.parseUnits(product.price, "ether") });
       await tx.wait();
       alert("Purchase successful!");
-      setBought(true);
-      fetchProductDetails();
+      fetchProductDetails(); // ✅ Updates quantity after purchase
+      await checkIfBought(); // ✅ Ensure button shows after purchase
     } catch (error) {
       console.error("Error buying product:", error);
       alert("Transaction failed!");
@@ -103,14 +120,20 @@ const ProductPage = () => {
       <p>Available: {product.quantity}</p>
       <p>Seller: {product.owner}</p>
 
-      {!bought && product.quantity > 0 ? (
+      {/* Hide Buy Button for Sellers */}
+      {product.owner !== account && product.quantity > 0 ? (
         <button onClick={handleBuyProduct}>Buy</button>
-      ) : bought ? (
+      ) : product.owner === account ? (
+        <p>⚠️ You are the seller of this product.</p>
+      ) : product.quantity === 0 ? (
+        <p>Sold Out</p>
+      ) : null}
+
+      {/* ✅ Always show "Leave a Review" button if the user has bought the product */}
+      {bought && (
         <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
           Leave a Review
         </button>
-      ) : (
-        <p>Sold Out</p>
       )}
 
       <h3>Reviews:</h3>
