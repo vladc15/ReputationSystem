@@ -38,7 +38,7 @@ const Feedback = () => {
       if (!hasBought) {
         // Redirect back to product page if user didn't buy it
         alert("You must purchase this product before leaving a review!");
-        navigate(`/product/${productId}`);
+        navigate(`/product/${productId}`, { state: { reload: true } });
       }
     } catch (error) {
       console.error("Error checking purchase status:", error);
@@ -58,15 +58,16 @@ const Feedback = () => {
 
       const contract = new ethers.Contract(reputationSystemAddress, reputationSystemAbi, signer);
 
-      await contract.addProductFeedback(
+      const tx = await contract.addProductFeedback(
         parseInt(productId), 
         parseInt(rating),
         Math.floor(Date.now() / 1000),
         comments
       );
+      await tx.wait();
 
       alert("Feedback submitted successfully!");
-      navigate(`/product/${productId}`); // Redirect back to the product page after submission
+      navigate(`/product/${productId}`, { state: { reload: true } }); // Redirect back to the product page after submission
     } catch (error) {
       console.error("Error submitting feedback:", error);
       alert("Failed to submit feedback. Please check the console for details.");

@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { ethers } from "ethers";
 import deployedContracts from "../deployedContracts.json";
+import { useNavigate } from "react-router-dom";
+import Path from "../routes/path";
 
 const AddProduct = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState(0);
   const [quantity, setQuantity] = useState(0);
+  const navigate = useNavigate();
 
   const handleAddProduct = async () => {
     try {
@@ -24,12 +27,13 @@ const AddProduct = () => {
       const contract = new ethers.Contract(productSystemAddress, productSystemAbi, signer);
 
       // Call the addProduct function
-      await contract.addProduct(
+      const tx = await contract.addProduct(
         name,
         description,
-        ethers.parseUnits(price.toString(), "ether"), // Use parseUnits for handling price
+        ethers.parseUnits(price.toString(), "wei"), // Use parseUnits for handling price
         quantity
       );
+      await tx.wait(); // Wait for the transaction to be mined
 
       alert("Product added successfully!");
       // Reset form fields
@@ -37,6 +41,7 @@ const AddProduct = () => {
       setDescription("");
       setPrice(0);
       setQuantity(0);
+      navigate(Path.MAIN, { state: { reload: true } });
     } catch (error) {
       console.error("Error adding product:", error);
       alert("Failed to add product. Please check the console for more details.");
@@ -65,7 +70,7 @@ const AddProduct = () => {
         />
       </div>
       <div>
-        <label>Price (ETH):</label>
+        <label>Price (Wei):</label>
         <input
           type="number"
           value={price}

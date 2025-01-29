@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import { useWeb3 } from "../utils/Context";
 import deployedContracts from "../deployedContracts.json";
+import Path from "../routes/path";
 
 const ProductPage = () => {
   const { productId } = useParams();
@@ -135,6 +136,9 @@ const ProductPage = () => {
           Leave a Review
         </button>
       )}
+
+      {/* Add button for going back to the main menu */}
+        <button onClick={() => navigate(Path.MAIN)}>Back to Main Menu</button>
 
       <h3>Reviews:</h3>
       {reviews.length > 0 ? (

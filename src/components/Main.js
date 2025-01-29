@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import deployedContracts from '../deployedContracts.json';
+import { useLocation } from "react-router-dom";
 
 export const Main = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [ethereumAddress, setEthereumAddress] = useState('');
   const [connected, setConnected] = useState(false);
   const [productSystemAddress] = useState(deployedContracts.ProductSystem);
@@ -42,7 +44,7 @@ export const Main = () => {
   useEffect(() => {
     fetchAddress();
     fetchProducts();
-  }, []);
+  }, [location.key]);
 
   return (
     <div className="App">
