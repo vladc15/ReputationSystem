@@ -1,38 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ethers } from "ethers";
 import deployedContracts from "../deployedContracts.json";
 
 const Feedback = () => {
-  const [productId, setProductId] = useState("");
+  const [searchParams] = useSearchParams();
+  const productId = searchParams.get("productId"); // Get productId from URL
   const [rating, setRating] = useState(0);
   const [comments, setComments] = useState("");
 
   const handleFeedbackSubmit = async () => {
     try {
       // Connect to Ethereum provider
-      const provider = new ethers.BrowserProvider(window.ethereum); // Updated for ethers.js v6
-      const signer = await provider.getSigner(); // Get the signer for transactions
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       const reputationSystemAddress = deployedContracts.ReputationSystem;
 
       const reputationSystemAbi = [
         "function addProductFeedback(uint productId, uint rating, uint timestamp, string comments) external"
       ];
 
-      // Create a contract instance
       const contract = new ethers.Contract(reputationSystemAddress, reputationSystemAbi, signer);
 
-      // Call addProductFeedback function on the smart contract
+      // Call addProductFeedback function
       await contract.addProductFeedback(
-        parseInt(productId), // Ensure productId is an integer
-        parseInt(rating), // Ensure rating is an integer
-        Math.floor(Date.now() / 1000), // Current timestamp in seconds
+        parseInt(productId), 
+        parseInt(rating),
+        Math.floor(Date.now() / 1000),
         comments
       );
 
       alert("Feedback submitted successfully!");
 
-      // Reset the form fields
-      setProductId("");
+      // Reset fields
       setRating(0);
       setComments("");
     } catch (error) {
@@ -43,16 +43,7 @@ const Feedback = () => {
 
   return (
     <div>
-      <h2>Submit Feedback</h2>
-      <div>
-        <label>Product ID:</label>
-        <input
-          type="text"
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-          placeholder="Enter product ID"
-        />
-      </div>
+      <h2>Submit Feedback for Product ID: {productId}</h2>
       <div>
         <label>Rating (1-5):</label>
         <input

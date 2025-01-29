@@ -6,19 +6,17 @@ import deployedContracts from "../deployedContracts.json";
 
 const ProductPage = () => {
   const { productId } = useParams();
-  const navigate = useNavigate();
   const { signer, account } = useWeb3();
-
   const [product, setProduct] = useState(null);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bought, setBought] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
+  const [reviews, setReviews] = useState([]); // Store reviews
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProductDetails();
-    fetchReviews();
-  }, [productId, account]);
+    fetchProductReviews();
+  }, [productId]);
 
   const fetchProductDetails = async () => {
     try {
@@ -30,52 +28,44 @@ const ProductPage = () => {
         ],
         provider
       );
-
       const details = await contract.getProduct(productId);
-
       setProduct({
-        id: details[0].toString(),
+        id: details[0],
         name: details[1],
         description: details[2],
-        price: ethers.formatEther(details[3]), // Convert price from wei to ETH
+        price: ethers.formatEther(details[3]),
         owner: details[4],
-        quantity: details[5].toString() // Convert quantity to string
+        quantity: details[5]
       });
-
-      if (account && details[4].toLowerCase() === account.toLowerCase()) {
-        setIsOwner(true);
-      } else {
-        setIsOwner(false);
-      }
-
       setLoading(false);
     } catch (error) {
       console.error("Error fetching product details:", error);
     }
   };
 
-  const fetchReviews = async () => {
+  const fetchProductReviews = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = new ethers.Contract(
         deployedContracts.ReputationSystem,
         [
-          "function getProductReviews(uint productId) public view returns (tuple(uint, address, uint, string)[])"
+          "function getProductFeedbacks(uint productId) external view returns (tuple(uint rating, uint timestamp, string comments)[])"
         ],
         provider
       );
 
-      const reviewsList = await contract.getProductReviews(productId);
-      setReviews(
-        reviewsList.map((review) => ({
-          id: review[0].toString(),
-          reviewer: review[1],
-          rating: review[2].toString(),
-          comment: review[3],
-        }))
-      );
+      const feedbackList = await contract.getProductFeedbacks(productId);
+      
+      // ✅ Fix: Ensure the rating is correctly extracted
+      const formattedReviews = feedbackList.map((feedback) => ({
+        rating: Number(feedback[0]), // Extract rating properly
+        timestamp: new Date(Number(feedback[1]) * 1000).toLocaleString(), // Convert timestamp
+        comments: feedback[2],
+      }));
+
+      setReviews(formattedReviews);
     } catch (error) {
-      console.error("Error fetching reviews:", error);
+      console.error("Error fetching product feedback:", error);
     }
   };
 
@@ -92,11 +82,7 @@ const ProductPage = () => {
         ],
         signer
       );
-
-      const tx = await contract.buyProduct(productId, 1, true, {
-        value: ethers.parseUnits(product.price, "ether")
-      });
-
+      const tx = await contract.buyProduct(productId, 1, true, { value: ethers.parseUnits(product.price, "ether") });
       await tx.wait();
       alert("Purchase successful!");
       setBought(true);
@@ -114,41 +100,34 @@ const ProductPage = () => {
       <h2>{product.name}</h2>
       <p>{product.description}</p>
       <p>Price: {product.price} ETH</p>
-      <p><strong>Available:</strong> {product.quantity} in stock</p>
+      <p>Available: {product.quantity}</p>
       <p>Seller: {product.owner}</p>
 
-      {!bought && parseInt(product.quantity) > 0 && !isOwner ? (
+      {!bought && product.quantity > 0 ? (
         <button onClick={handleBuyProduct}>Buy</button>
       ) : bought ? (
         <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
           Leave a Review
         </button>
-      ) : isOwner ? (
-        <p><strong>You own this product.</strong></p>
       ) : (
         <p>Sold Out</p>
       )}
 
-      <h3>Reviews</h3>
-      {reviews.length === 0 ? (
-        <p>No reviews yet.</p>
-      ) : (
+      <h3>Reviews:</h3>
+      {reviews.length > 0 ? (
         <ul>
-          {reviews.map((review) => (
-            <li key={review.id}>
-              <strong>Rating:</strong> {review.rating}/5 <br />
-              <strong>Comment:</strong> {review.comment} <br />
-              <strong>Reviewer:</strong> {review.reviewer}
+          {reviews.map((review, index) => (
+            <li key={index}>
+              <strong>Rating:</strong> {review.rating} / 5 ⭐
+              <br />
+              <strong>Date:</strong> {review.timestamp}
+              <br />
+              <strong>Comment:</strong> {review.comments}
             </li>
           ))}
         </ul>
-      )}
-
-      {/* If the user has bought the product, they can add a review */}
-      {bought && (
-        <button onClick={() => navigate(`/feedback?productId=${product.id}`)}>
-          Add Review
-        </button>
+      ) : (
+        <p>No reviews yet.</p>
       )}
     </div>
   );
