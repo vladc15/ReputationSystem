@@ -11,7 +11,9 @@ export const Main = () => {
   const [ethereumAddress, setEthereumAddress] = useState('');
   const [connected, setConnected] = useState(false);
   const [productSystemAddress] = useState(deployedContracts.ProductSystem);
+  const [userSystemAddress] = useState(deployedContracts.UserSystem);
   const [products, setProducts] = useState([]);
+  const [sellerBalance, setSellerBalance] = useState(0);
 
   const fetchAddress = async () => {
     if (window.ethereum) {
@@ -20,6 +22,7 @@ export const Main = () => {
       const address = await signer.getAddress();
       setEthereumAddress(address);
       setConnected(true);
+      fetchSellerBalance(signer);
     }
   };
 
@@ -41,6 +44,43 @@ export const Main = () => {
     }
   };
 
+  const fetchSellerBalance = async (signer) => {
+    try {
+      const contract = new ethers.Contract(
+          userSystemAddress,
+          ["function getBalance() external view returns (uint)"],
+          signer
+      );
+      const balance = await contract.getBalance();
+      setSellerBalance(ethers.formatEther(balance)); // Convert to ETH format
+    } catch (error) {
+      console.error('Error fetching seller balance:', error);
+    }
+  };
+  const handleWithdraw = async () => {
+    if (!connected) {
+      alert("Connect your wallet first!");
+      return;
+    }
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(
+          userSystemAddress,
+          ["function withdrawBalance(uint withdrawAmount) external"],
+          signer
+      );
+      const amountToWithdraw = ethers.parseUnits(sellerBalance, "ether"); // Convert to BigInt
+      const tx = await contract.withdrawBalance(amountToWithdraw);
+      await tx.wait();
+      alert("Withdrawal successful!");
+      fetchSellerBalance(signer); // Refresh balance after withdrawal
+    } catch (error) {
+      console.error("Error withdrawing funds:", error);
+      alert("Transaction failed!");
+    }
+  };
+
   useEffect(() => {
     fetchAddress();
     fetchProducts();
@@ -53,6 +93,16 @@ export const Main = () => {
         <p>My Address: {ethereumAddress}</p>
 
         {!connected && <button onClick={fetchAddress}>Connect Wallet</button>}
+
+        {/* Display Seller Balance */}
+        {connected && (
+            <div>
+              <h3>Total Earnings: {sellerBalance} ETH</h3>
+              <button onClick={handleWithdraw} disabled={sellerBalance === "0"}>
+                Withdraw Funds
+              </button>
+            </div>
+        )}
 
         {/* Add Product Button */}
         {connected && (

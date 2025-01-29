@@ -11,12 +11,16 @@ const ProductPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [bought, setBought] = useState(false);
+  const [score, setScore] = useState(0);
+  const [scalingFactor, setScalingFactor] = useState(0);
   const [reviews, setReviews] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchProductDetails();
     fetchProductReviews();
+    fetchProductScore();
+    fetchMathScalingFactor();
     checkIfBought();
   }, [productId, account]);
 
@@ -45,6 +49,38 @@ const ProductPage = () => {
     }
   };
 
+  const fetchProductScore = async () => {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(
+        deployedContracts.ReputationSystem,
+        [
+          "function getProductFeedbackScore(uint productId) external view returns (uint)"
+        ],
+        provider
+      );
+      const score = await contract.getProductFeedbackScore(productId);
+      setScore(Number(score));
+    } catch (error) {
+      console.error("Error fetching product score:", error);
+    }
+  };
+
+  const fetchMathScalingFactor = async () => {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(
+        deployedContracts.MathLib,
+        ["function SCALING_FACTOR() external view returns (uint256)"],
+        provider
+        );
+        const scalingFactor = await contract.SCALING_FACTOR();
+        setScalingFactor(Number(scalingFactor));
+    } catch (error) {
+      console.error("Error fetching math scaling factor:", error);
+    }
+  };
+
   const fetchProductReviews = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -57,7 +93,7 @@ const ProductPage = () => {
       );
 
       const feedbackList = await contract.getProductFeedbacks(productId);
-      
+
       const formattedReviews = feedbackList.map((feedback) => ({
         rating: Number(feedback[0]),
         timestamp: new Date(Number(feedback[1]) * 1000).toLocaleString(),
@@ -141,6 +177,7 @@ const ProductPage = () => {
         <button onClick={() => navigate(Path.MAIN)}>Back to Main Menu</button>
 
       <h3>Reviews:</h3>
+      <p> <strong> Weighted Rating Score: {score / scalingFactor} </strong></p>
       {reviews.length > 0 ? (
         <ul>
           {reviews.map((review, index) => (
@@ -161,3 +198,4 @@ const ProductPage = () => {
 };
 
 export default ProductPage;
+
