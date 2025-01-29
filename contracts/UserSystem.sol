@@ -1,6 +1,6 @@
 pragma solidity >=0.7.0 <0.9.0;
 
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 contract UserSystem {
     mapping(address => uint) private balances; // balances should be private
