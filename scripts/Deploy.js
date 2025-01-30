@@ -1,54 +1,51 @@
-import {ethers} from "ethers";
+const hre = require("hardhat");
 
 const main = async () => {
-    const [deployer] = await ethers.getSigners();
+    const [deployer] = await hre.ethers.getSigners();
 
     console.log("Deploying contracts with account:", deployer.address);
 
     // Deploy MathLib
-    const MathLib = await ethers.getContractFactory("MathLib");
-    const mathLib = await MathLib.deploy();
-    await mathLib.deployed();
-    console.log("MathLib deployed to:", mathLib.address);
+    const MathLib = await hre.ethers.getContractFactory("MathLib");
+    const mathLib = await MathLib.deploy(); // deploy and wait
+    console.log("MathLib deployed to:", mathLib.target); // use mathLib.target to get the deployed address
 
     // Deploy UserSystem
-    const UserSystem = await ethers.getContractFactory("UserSystem");
-    const userSystem = await UserSystem.deploy();
-    await userSystem.deployed();
-    console.log("UserSystem deployed to:", userSystem.address);
+    const UserSystem = await hre.ethers.getContractFactory("UserSystem");
+    const userSystem = await UserSystem.deploy(); // deploy and wait
+    console.log("UserSystem deployed to:", userSystem.target);
 
     // Deploy ReputationSystem
-    const ReputationSystem = await ethers.getContractFactory("ReputationSystem");
-    const reputationSystem = await ReputationSystem.deploy();
-    await reputationSystem.deployed();
-    console.log("ReputationSystem deployed to:", reputationSystem.address);
+    const ReputationSystem = await hre.ethers.getContractFactory("ReputationSystem");
+    const reputationSystem = await ReputationSystem.deploy(); // deploy and wait
+    console.log("ReputationSystem deployed to:", reputationSystem.target);
 
     // Deploy ProductSystem
-    const ProductSystem = await ethers.getContractFactory("ProductSystem");
-    const productSystem = await ProductSystem.deploy();
-    await productSystem.deployed();
-    console.log("ProductSystem deployed to:", productSystem.address);
+    const ProductSystem = await hre.ethers.getContractFactory("ProductSystem");
+    const productSystem = await ProductSystem.deploy(); // deploy and wait
+    console.log("ProductSystem deployed to:", productSystem.target);
 
     // Deploy ProductPlatform
-    const ProductPlatform = await ethers.getContractFactory("ProductPlatform");
+    const ProductPlatform = await hre.ethers.getContractFactory("ProductPlatform");
     const productPlatform = await ProductPlatform.deploy(
-        userSystem.address,
-        reputationSystem.address,
-        productSystem.address
-    );
-    await productPlatform.deployed();
-    console.log("ProductPlatform deployed to:", productPlatform.address);
+        userSystem.target,
+        reputationSystem.target,
+        productSystem.target
+    ); // deploy and wait
+    console.log("ProductPlatform deployed to:", productPlatform.target);
 
-    // write all contract addresses to a file
-    const fs = require('fs');
+    // Write all contract addresses to a file
+    const fs = require("fs");
+    const path = require("path");
     const addresses = {
-        MathLib: mathLib.address,
-        UserSystem: userSystem.address,
-        ReputationSystem: reputationSystem.address,
-        ProductSystem: productSystem.address,
-        ProductPlatform: productPlatform.address
+        MathLib: mathLib.target,
+        UserSystem: userSystem.target,
+        ReputationSystem: reputationSystem.target,
+        ProductSystem: productSystem.target,
+        ProductPlatform: productPlatform.target,
     };
-    fs.writeFileSync('../src/deployedContracts.json', JSON.stringify(addresses, null, 2));
+    const addressesPath = path.resolve(__dirname, "../src/deployedContracts.json");
+    fs.writeFileSync(addressesPath, JSON.stringify(addresses, null, 2));
 
     console.log("All contracts deployed successfully");
 };

@@ -45,8 +45,8 @@ contract ProductPlatform {
 
         uint256 productPrice = productSystem.getProductPrice(productId);
         uint256 msgValueInUsd = 0;
-        uint256 ethPriceInUsd = userSystem.getETHPrice();
         if (eth == false) {
+            uint256 ethPriceInUsd = userSystem.getETHPrice();
             productPrice = productPrice * ethPriceInUsd;
             msgValueInUsd = msg.value * ethPriceInUsd;
             require(msgValueInUsd >= productPrice * quantity, "Insufficient funds");
@@ -58,8 +58,12 @@ contract ProductPlatform {
 //        userSystem.updateBalance(productSeller, productSystem.getProductPrice(productId) * quantity);
         // put this in order to make sure the updateBalance is called correctly (and it cannot be called from the UserSystem contract
         // without paying an amount of ETH equal to the amount to be updated)
-        (bool success, ) = address(userSystem).call(abi.encodeWithSignature("updateBalance(address,uint256)", productSeller, productPrice * quantity));
+        (bool success, ) = address(userSystem).call{value: productPrice * quantity}(abi.encodeWithSignature("updateBalance(address,uint256)", productSeller, productPrice * quantity));
         require(success, "Failed to update seller balance");
+//        (bool success, ) = address(userSystem).call{value: amount}(
+//            abi.encodeWithSignature("updateBalance(address,uint256)", user, amount)
+//        );
+//        require(success, "Failed to update user balance");
         userSystem.addUserPurchase(msg.sender, productId);
         productSystem.setProductQuantity(productId, productQuantity - quantity);
 
@@ -71,6 +75,7 @@ contract ProductPlatform {
             }
         }
         else {
+            uint256 ethPriceInUsd = userSystem.getETHPrice();
             uint256 change = msgValueInUsd - productPrice * quantity;
             if (change > 0) {
                 // refund instantly the change
