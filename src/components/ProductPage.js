@@ -23,7 +23,7 @@ const ProductPage = () => {
     fetchProductReviews();
     fetchProductScore();
     fetchMathScalingFactor();
-    checkIfBought();
+    checkIfBought(); // eslint-disable-next-line
   }, [productId, account]);
 
   const fetchProductDetails = async () => {
@@ -138,9 +138,38 @@ const ProductPage = () => {
         ],
         signer
       );
-      const pricePerUnit = ethers.parseEther(product.price.toString());
-      const totalPrice = pricePerUnit.mul(quantity);
+      const pricePerUnit = ethers.parseEther(product.price.toString()); // eslint-disable-next-line
+      const totalPrice = pricePerUnit * BigInt(quantity);
 
+
+      const provider = signer.provider;
+      const feeData = await provider.getFeeData();
+      const gasPrice = feeData.gasPrice;
+
+      const estimatedGas = await contract.buyProduct.estimateGas(productId, quantity, true, { value: totalPrice.toString() });
+
+      const gasLimit = estimatedGas + (estimatedGas * 25n) / 100n; // Add 25% buffer
+      // eslint-disable-next-line
+      const gasCost = gasPrice * BigInt(gasLimit);
+      const gasCostLimit = ethers.parseEther('0.1'); // 0.1 ETH
+
+      if (gasCost > gasCostLimit) {
+        alert("Gas cost exceeds limit. Please reduce quantity.");
+        return;
+      }
+
+      // wait for user confirmation
+      const confirm = window.confirm(
+        `You are about to buy ${quantity} item(s) for ${ethers.formatEther(totalPrice)} ETH.
+         Gas cost: ${ethers.formatEther(gasCost)} ETH.
+         Gas limit: ${gasLimit.toString()}.
+         Gas cost limit: ${ethers.formatEther(gasCostLimit)} ETH.
+         Continue?`
+        );
+      if (!confirm) return;
+
+      // make transaction with gas limit
+      // const tx = await contract.buyProduct(productId, quantity, true, { value: totalPrice.toString(), gasLimit: gasLimit });
       const tx = await contract.buyProduct(productId, quantity, true, { value: totalPrice.toString() });
       await tx.wait();
       alert("Purchase successful!");
@@ -148,7 +177,7 @@ const ProductPage = () => {
       await checkIfBought(); // ✅ Ensure button shows after purchase
     } catch (error) {
       console.error("Error buying product:", error);
-      alert("Transaction failed!");
+      alert("Transaction failed!", error);
     }
   };
 
@@ -213,7 +242,7 @@ const ProductPage = () => {
                   </div>
 
                   <p className="total-price">
-                    Total: {(quantity * parseFloat(product.price)).toFixed(10)} ETH
+                    Total: {(quantity * parseFloat(product.price)).toFixed(12)} ETH
                   </p>
 
                   <button className="buy-button" onClick={handleBuyProduct}>

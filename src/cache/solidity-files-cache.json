@@ -76,7 +76,7 @@
       ]
     },
     "D:\\Blockchain\\ReputationSystem\\contracts\\ProductPlatform.sol": {
-      "lastModificationDate": 1738172813134,
+      "lastModificationDate": 1738228724768,
       "contentHash": "8103297187fd3d57589ee2bb47cfc122",
       "sourceName": "contracts/ProductPlatform.sol",
       "solcConfig": {
@@ -117,7 +117,7 @@
       ]
     },
     "D:\\Blockchain\\ReputationSystem\\contracts\\UserSystem.sol": {
-      "lastModificationDate": 1738173718544,
+      "lastModificationDate": 1738228724768,
       "contentHash": "d90d357958359f217bc46de8dd21a3a2",
       "sourceName": "contracts/UserSystem.sol",
       "solcConfig": {
