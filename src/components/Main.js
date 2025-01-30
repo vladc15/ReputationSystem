@@ -15,6 +15,7 @@ export const Main = () => {
   const [userSystemAddress] = useState(deployedContracts.UserSystem);
   const [products, setProducts] = useState([]);
   const [sellerBalance, setSellerBalance] = useState(0);
+  const [lastWithdrawal, setLastWithdrawal] = useState([]);
 
   const fetchAddress = async () => {
     if (window.ethereum) {
@@ -32,9 +33,7 @@ export const Main = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = new ethers.Contract(
         productSystemAddress,
-        [
-          'function getProducts() public view returns (tuple(uint, string, string, uint, address, uint)[])',
-        ],
+        ['function getProducts() public view returns (tuple(uint, string, string, uint, address, uint)[])'],
         provider
       );
 
@@ -48,9 +47,12 @@ export const Main = () => {
   const fetchSellerBalance = async (signer) => {
     try {
       const contract = new ethers.Contract(
-          userSystemAddress,
-          ["function getBalance() external view returns (uint)"],
-          signer
+        userSystemAddress,
+        [
+          "function getBalance() external view returns (uint)",
+          "event Withdrawal(address user, uint amount)"
+        ],
+        signer
       );
       const balance = await contract.getBalance();
       setSellerBalance(ethers.formatEther(balance)); // Convert to ETH format
@@ -58,6 +60,7 @@ export const Main = () => {
       console.error('Error fetching seller balance:', error);
     }
   };
+
   const handleWithdraw = async () => {
     if (!connected) {
       alert("Connect your wallet first!");
@@ -67,20 +70,47 @@ export const Main = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
-          userSystemAddress,
-          ["function withdrawBalance(uint withdrawAmount) external"],
-          signer
+        userSystemAddress,
+        [
+          "function withdrawBalance(uint withdrawAmount) external",
+          "event Withdrawal(address user, uint amount)"
+        ],
+        signer
       );
+
       const amountToWithdraw = ethers.parseUnits(sellerBalance, "ether"); // Convert to BigInt
       const tx = await contract.withdrawBalance(amountToWithdraw);
       await tx.wait();
+
       alert("Withdrawal successful!");
-      fetchSellerBalance(signer); // Refresh balance after withdrawal
+      await fetchSellerBalance(signer); // Refresh balance after withdrawal
     } catch (error) {
       console.error("Error withdrawing funds:", error);
       alert("Transaction failed!");
     }
   };
+
+  useEffect(() => {
+    if (!connected) return;
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    provider.getSigner().then((signer) => {
+      const contract = new ethers.Contract(
+        userSystemAddress,
+        ["event Withdrawal(address user, uint amount)"],
+        signer
+      );
+
+      contract.on("Withdrawal", (user, amount) => {
+        console.log("Withdrawal event received:", user, amount);
+        setLastWithdrawal([user, ethers.formatEther(amount), new Date()]);
+      });
+    });
+
+    return () => {
+      provider.removeAllListeners(); // Cleanup event listeners on unmount
+    };
+  }, [connected]);
 
   useEffect(() => {
     fetchAddress();
@@ -104,6 +134,9 @@ export const Main = () => {
                     <h2>Welcome, {ethereumAddress.slice(0, 6)}...{ethereumAddress.slice(-4)}</h2>
                     <div className="balance-section">
                       <h3>Total Earnings: <span className="highlight">{sellerBalance} ETH</span></h3>
+                        {lastWithdrawal.length > 0 && (
+                            <p>Last withdrawal: {lastWithdrawal[1]} ETH on {lastWithdrawal[2].toLocaleString()}</p>
+                        )}
                       <div className="action-buttons">
                         <button
                             onClick={handleWithdraw}
@@ -164,42 +197,4 @@ export const Main = () => {
         </header>
       </div>
   );
-
-  // return (
-  //   <div className="App">
-  //     <div className="App-header">
-  //       <h2>Connected to the Reputation System</h2>
-  //       <p>My Address: {ethereumAddress}</p>
-  //
-  //       {!connected && <button onClick={fetchAddress}>Connect Wallet</button>}
-  //
-  //       {/* Display Seller Balance */}
-  //       {connected && (
-  //           <div>
-  //             <h3>Total Earnings: {sellerBalance} ETH</h3>
-  //             <button onClick={handleWithdraw} disabled={sellerBalance === "0"}>
-  //               Withdraw Funds
-  //             </button>
-  //           </div>
-  //       )}
-  //
-  //       {/* Add Product Button */}
-  //       {connected && (
-  //         <button onClick={() => navigate('/add-product')}>Add Product</button>
-  //       )}
-  //
-  //       <h3>Available Products</h3>
-  //       <ul>
-  //         {products.map((product, index) => (
-  //           <li key={index}>
-  //             <strong>{product[1]}</strong>: {product[2]} - {ethers.formatEther(product[3])} ETH ({product[5].toString()} in stock)
-  //             <button onClick={() => navigate(`/product/${product[0]}`)}>
-  //               View Details
-  //             </button>
-  //           </li>
-  //         ))}
-  //       </ul>
-  //     </div>
-  //   </div>
-  // );
 };
