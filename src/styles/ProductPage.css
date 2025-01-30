@@ -11,6 +11,8 @@
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-header h2 {
@@ -84,6 +86,8 @@
     display: flex;
     gap: 15px;
     margin: 20px 0;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 /* Responsive Design */
