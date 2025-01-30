@@ -81,6 +81,78 @@
     font-size: 1.1em;
 }
 
+.quantity-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.quantity-input-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.quantity-btn {
+    padding: 8px 15px;
+    border-radius: 4px;
+    background-color: #61dafb;
+    color: #282c34;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.quantity-btn:disabled {
+    background-color: #3a3f4b;
+    cursor: not-allowed;
+}
+
+.quantity-input {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    border-radius: 4px;
+    border: 1px solid #61dafb;
+    background-color: #2c303a;
+    color: white;
+}
+
+/* get rid of the number input spinner */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.quantity-selector {
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-selector select {
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #3a3f4b;
+    color: white;
+    border: 1px solid #61dafb;
+}
+
+.total-price {
+    font-size: 1.1em;
+    color: #61dafb;
+    margin-left: 15px;
+}
+
+
 /* Reuse existing button styles from Main.css */
 .button-group {
     display: flex;
@@ -88,6 +160,7 @@
     margin: 20px 0;
     flex-wrap: wrap;
     justify-content: center;
+    flex-direction: column;
 }
 
 /* Responsive Design */

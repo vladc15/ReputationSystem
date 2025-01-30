@@ -16,6 +16,7 @@ const ProductPage = () => {
   const [scalingFactor, setScalingFactor] = useState(0);
   const [reviews, setReviews] = useState([]);
   const navigate = useNavigate();
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     fetchProductDetails();
@@ -137,7 +138,10 @@ const ProductPage = () => {
         ],
         signer
       );
-      const tx = await contract.buyProduct(productId, 1, true, { value: ethers.parseUnits(product.price, "ether") });
+      const pricePerUnit = ethers.parseEther(product.price.toString());
+      const totalPrice = pricePerUnit.mul(quantity);
+
+      const tx = await contract.buyProduct(productId, quantity, true, { value: totalPrice.toString() });
       await tx.wait();
       alert("Purchase successful!");
       fetchProductDetails(); // ✅ Updates quantity after purchase
@@ -145,6 +149,18 @@ const ProductPage = () => {
     } catch (error) {
       console.error("Error buying product:", error);
       alert("Transaction failed!");
+    }
+  };
+
+  const incrementQuantity = () => {
+    if (quantity < product.quantity) {
+      setQuantity(prev => prev + 1);
+    }
+  };
+
+  const decrementQuantity = () => {
+    if (quantity > 1) {
+      setQuantity(prev => prev - 1);
     }
   };
 
@@ -164,9 +180,46 @@ const ProductPage = () => {
           </div>
 
           <div className="button-group">
-            {/* Butoane existente */}
             {product.owner !== account && product.quantity > 0 ? (
-                <button className="buy-button" onClick={handleBuyProduct}>Buy</button>
+                <div className="quantity-controls">
+                  <div className="quantity-input-group">
+                    <button
+                        className="quantity-btn"
+                        onClick={decrementQuantity}
+                        disabled={quantity === 1}
+                    >
+                      -
+                    </button>
+
+                    <input
+                        type="number"
+                        min="1"
+                        max={product.quantity}
+                        value={quantity}
+                        onChange={(e) => {
+                          const value = Math.max(1, Math.min(product.quantity, Number(e.target.value)));
+                          setQuantity(value);
+                        }}
+                        className="quantity-input"
+                    />
+
+                    <button
+                        className="quantity-btn"
+                        onClick={incrementQuantity}
+                        disabled={quantity === product.quantity}
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  <p className="total-price">
+                    Total: {(quantity * parseFloat(product.price)).toFixed(10)} ETH
+                  </p>
+
+                  <button className="buy-button" onClick={handleBuyProduct}>
+                    Buy {quantity} Item{quantity > 1 ? 's' : ''}
+                  </button>
+                </div>
             ) : product.owner === account ? (
                 <p className="warning-message">⚠️ You are the seller of this product.</p>
             ) : product.quantity === 0 ? (
